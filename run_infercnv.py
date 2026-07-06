@@ -5,7 +5,6 @@
 # ----------------------------------------------------------------------------------------------------------------------
 import rpy2.robjects as robjects
 from pathlib import Path
-import rdata
 import pandas as pd
 from utility import benchmark_method
 import itertools
@@ -15,7 +14,6 @@ import string
 
 def convert_bool_to_robject(bool_val: bool) -> robjects.vectors.BoolVector:
     return robjects.vectors.BoolVector([bool_val])
-
 
 def random_sequence(len_seq: int) -> str:
     list_signs = []
@@ -60,7 +58,7 @@ def get_hg_38_desc_paths(target_path: Path) -> dict:
     return {p.stem: p for p in target_path.rglob("*__hg_38__describe.csv")}
 
 
-def csvs_to_adatas(target_path: Path, precise_annotation: bool = False) -> dict:
+def gen_data_dict(target_path: Path, precise_annotation: bool = False) -> dict:
     """
     Generates a dictionary with adata and their respective reference catalogue of normal cells (cell_names).
     """
@@ -69,23 +67,24 @@ def csvs_to_adatas(target_path: Path, precise_annotation: bool = False) -> dict:
     for k, path_desc in dict_hg38_desc.items():
         path_rcm = Path(target_path) / f"{k.replace("__describe", "")}__RCM.csv"
         if path_rcm.exists():
-            adata = sc.read_csv(path_rcm).T
-            obs_desc_df = pd.read_csv(path_desc, index_col="cell_id").loc[list(adata.obs.index),:]
-            adata.obs = obs_desc_df
+            obs_desc_df = pd.read_csv(path_desc, index_col="cell_id")
             if precise_annotation:
-                list_cell_type = list(adata.obs["cell_type"].unique())
+                list_cell_type = list(obs_desc_df["cell_type"].unique())
                 list_cell_type.remove("Tumor")
-                dict_accepted_files[k.replace("__describe", "")] = {"adata": adata,
-                                          "reference_key": "cell_type",
-                                          "reference_cat":list_cell_type}
+                r_list_cell_type = robjects.StrVector(list_cell_type)
+                dict_accepted_files[k.replace("__describe", "")] = {"path_file": path_rcm,
+                                          "annotation_df": path_desc,
+                                          "annotation_df_target_col": "cell_type",
+                                          "ref_group_names":r_list_cell_type}
             else:
-                dict_accepted_files[k.replace("__describe", "")] = {"adata": adata,
-                                          "reference_key": "cell_category",
-                                          "reference_cat":["Normal"]}
+                dict_accepted_files[k.replace("__describe", "")] = {"path_file": path_rcm,
+                                          "annotation_df": path_desc,
+                                          "annotation_df_target_col": "cell_category",
+                                          "ref_group_names":robjects.StrVector(["Normal"])}
     return dict_accepted_files
 
 
-def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict = {}) -> None:
+def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict) -> None:
     """
     Main function for running infercnvpy for benchmarking.
 
@@ -109,12 +108,14 @@ def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict = {}) ->
     else:
         precise_annotation = kwargs["precise_annotation"]
         del kwargs_infercnvpy["precise_annotation"]
-    dict_files = csvs_to_adatas(path_target, precise_annotation)
+    dict_files = gen_data_dict(path_target, precise_annotation)
     for tag_dataset, dict_data in dict_files.items():
         str_kwargs = random_sequence(len_seq=8)
         file_name = f"{tag_dataset}__{str_kwargs}__infercnvr"
         data_save_path = path_out_data / file_name
         data_save_path.mkdir(exist_ok=True)
+        p_annot_file = data_save_path / f"{file_name}__annot.txt"
+        pd.read_csv(dict_data["annotation_df"], index_col="cell_id")[dict_data["annotation_df_target_col"]].to_csv(p_annot_file, header=False)
 
         @benchmark_method(str(data_save_path))
         def run_rscript(path_file,
@@ -126,17 +127,23 @@ def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict = {}) ->
                         kwargs):
             r = robjects.r
             r.source("c_infercnvR.R")
+            # reformat here to avoid datatype issues with benchmark summary
+            kwargs_reformat = {x: convert_bool_to_robject(y) if isinstance(y, bool) else y for x, y in kwargs.items()}
             r.r_run_infercnv(path_file,
                              out_dir,
                              sample_tag,
                              annotations_file,
                              gene_order_file_path,
-                             ref_group_names, **kwargs)
+                             ref_group_names,
+                             **kwargs_reformat)
 
-        run_rscript(data_save_path,
-                    file_name,
-                    gene_order_file_path=Path(__file__).parent / "genome_data" / "hg38_gencode_v27.txt",
-                    kwargs=kwargs)
+        run_rscript(path_file=str(dict_data["path_file"]),
+                    out_dir=str(data_save_path),
+                    sample_tag=file_name,
+                    annotations_file=str(p_annot_file),
+                    gene_order_file_path=str(Path(__file__).parent / "genome_data" / "hg38_gencode_v27.txt"),
+                    ref_group_names=dict_data["ref_group_names"],
+                    kwargs=kwargs_infercnvpy)
 
 
 if __name__ == "__main__":
@@ -164,11 +171,12 @@ if __name__ == "__main__":
                          "denoise": [True, False],
                          "sd_amplifier":[1, 1.5, 2],
                          "noise_logistic":[True, False],
-                         "num_threads":[50],
+                         "num_threads":[4],
                          "plot_steps":[True, False],
                          "hspike_aggregate_normals":[True, False],
-                         "up_to_step":[100]}
-
+                         "up_to_step":[100],
+                         "precise_annotation":[True, False]}
+    kwargs_gridsearch = {"precise_annotation":[False]}
     path_in, path_out = val_build_project()
     list_kwargs = grid_by_dict(kwargs_gridsearch)
     for kwarg_opt in list_kwargs:

@@ -1,5 +1,6 @@
 # important files for InferCNV: https://github.com/broadinstitute/inferCNV/wiki/File-Definitions
-library(InferCNV)
+library(infercnv)
+library(glue)
 
 
 r_run_infercnv <- function(path_file,
@@ -37,7 +38,7 @@ r_run_infercnv <- function(path_file,
 
     infercnv_obj = CreateInfercnvObject(raw_counts_matrix=path_file,
                                         annotations_file=annotations_file,
-                                        delim=", ",
+                                        delim=",",
                                         gene_order_file=gene_order_file_path,
                                         ref_group_names=ref_group_names)
 
@@ -68,8 +69,8 @@ r_run_infercnv <- function(path_file,
                                  plot_steps = plot_steps,
                                  hspike_aggregate_normals = hspike_aggregate_normals,
                                  up_to_step = up_to_step,
-                                 out_dir=NULL)
+                                 out_dir=out_dir)
 
     write.csv(infercnv_obj@expr.data, glue("{out_dir}/{sample_tag}__cnv.csv"))
-    write.csv(infercnv_obj@expr.data, glue("{out_dir}/{sample_tag}__gene.csv"))
+    write.csv(infercnv_obj@gene_order, glue("{out_dir}/{sample_tag}__gene.csv"))
 }
