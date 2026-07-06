@@ -65,7 +65,7 @@ def gen_data_dict(target_path: Path, precise_annotation: bool = False) -> dict:
     dict_hg38_desc = get_hg_38_desc_paths(target_path)
     dict_accepted_files = {}
     for k, path_desc in dict_hg38_desc.items():
-        path_rcm = Path(target_path) / f"{k.replace("__describe", "")}__RCM.csv"
+        path_rcm = Path(target_path) / f"{k.replace('__describe', '')}__RCM.csv"
         if path_rcm.exists():
             obs_desc_df = pd.read_csv(path_desc, index_col="cell_id")
             if precise_annotation:
