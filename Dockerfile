@@ -1,13 +1,18 @@
-FROM infercnv_pyomics
+FROM trinityctat/infercnv
 
-RUN mkdir -p /home/f/feiler/dbenchInferCNV
-WORKDIR /home/f/feiler/dbenchInferCNV
+RUN mkdir -p /scratch/tmp/feiler/dbenchInferCNV_R
+WORKDIR /scratch/tmp/feiler/dbenchInferCNV_R
 COPY . .
 
-RUN yum install -y pip
-RUN yum install -y python3-devel
-RUN yum install -y libpng-devel
-RUN pip install --no-cache-dir -r requirements.txt
-RUN R -e "install.packages('Seurat',dependencies=TRUE, repos='http://cran.rstudio.com/')"
+RUN apt update
+RUN apt install -y python3 python3-pip
+RUN apt install -y libreadline-dev
+RUN apt install -y r-base r-base-dev python3-dev python-setuptools lzma-dev libblas-dev liblapack-dev
+RUN pip3 install -r requirements.txt
+RUN cd ..
+RUN git clone https://github.com/rpy2/rpy2
+RUN cd rpy2 && pip install .
+RUN cd /scratch/tmp/feiler/dbenchInferCNV_R
+RUN pip install -r requirements.txt
 
-CMD ["python3", "/home/f/feiler/dbenchInferCNV/run_infercnv.py"]
+CMD ["python3", "/scratch/tmp/feiler/dbenchInferCNV_R/run_infercnv.py"]

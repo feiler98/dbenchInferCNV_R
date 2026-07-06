@@ -5,7 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 import time
 import pandas as pd
-from configparser import ConfigParser
+
 
 
 def get_project_dir(cwd: Path, parent_path_str: str) -> Path:
