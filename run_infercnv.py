@@ -171,12 +171,11 @@ if __name__ == "__main__":
                          "denoise": [True, False],
                          "sd_amplifier":[1, 1.5, 2],
                          "noise_logistic":[True, False],
-                         "num_threads":[4],
+                         "num_threads":[50],
                          "plot_steps":[True, False],
                          "hspike_aggregate_normals":[True, False],
                          "up_to_step":[100],
                          "precise_annotation":[True, False]}
-    kwargs_gridsearch = {"precise_annotation":[False]}
     path_in, path_out = val_build_project()
     list_kwargs = grid_by_dict(kwargs_gridsearch)
     for kwarg_opt in list_kwargs:
