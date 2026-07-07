@@ -49,7 +49,7 @@ RUN wget -O /tmp/jags.tar.gz https://sourceforge.net/projects/mcmc-jags/files/JA
 RUN R -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); install.packages('remotes')"
 
 RUN R -e "library(remotes)"  # verfication remotes
-RUN R -e "remotes::install_url('https://cloud.r-project.org/src/contrib/rjags_4-17.tar.gz')"
+RUN R -e 'remotes::install_github("mcmc-jags/rjags")'
 RUN R -e "library(rjags)"  # verfication jags
 
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org')"
