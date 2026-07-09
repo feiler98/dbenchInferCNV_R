@@ -1,11 +1,11 @@
-repo <- c('https://spatstat.r-universe.dev', 'https://cloud.r-project.org')
-install.packages("spatstat.explore", dependencies=TRUE, repos=repo, Ncpus=20)
-library(spatstat.explore)
-install.packages('Seurat',dependencies=TRUE, repos='http://cran.rstudio.com/', Ncpus=20)
+install.packages(c('httr', 'plotly', 'png', 'reticulate'), dependencies=TRUE, repos='http://cran.rstudio.com/', Ncpus=20)
+install.packages('Seurat', dependencies=TRUE, repos='http://cran.rstudio.com/', Ncpus=20)
 library(Seurat)
 
 BiocManager::install("BiocGenerics")
 library(BiocGenerics)
+
+install.packages('abind', dependencies=True, repos='http://cran.rstudio.com/', Ncpus=20)
 BiocManager::install("S4Vectors")
 library(S4Vectors)
 BiocManager::install("IRanges")

@@ -2,7 +2,10 @@ FROM fedora:42
 
 RUN sudo dnf -y update && \
     sudo dnf -y install \
+    gsl-devel \
+    fftw-devel \
     R-core \
+    R-devel \
     R-core-devel \
     R-testthat \
     gcc \
@@ -70,17 +73,14 @@ RUN R -e "library(remotes)"  # verfication remotes
 RUN R -e "remotes::install_url('https://cloud.r-project.org/src/contrib/rjags_4-17.tar.gz')"
 RUN R -e "library(rjags)"
 
-COPY script_install.R .
+RUN mkdir -p /scratch/tmp/feiler/dbenchInferCNV_R
+WORKDIR /scratch/tmp/feiler/dbenchInferCNV_R
+COPY . .
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org', Ncpus=20)"
 RUN R -e "install.packages('gplots', repos='https://cloud.r-project.org', Ncpus=20)"
 RUN Rscript script_install.R
 
-
-RUN mkdir -p /scratch/tmp/feiler/dbenchInferCNV_R
-WORKDIR /scratch/tmp/feiler/dbenchInferCNV_R
-COPY . .
-
-RUN yum install -y python3 python3-pip python3-devel
+RUN dnf install -y python3 python3-pip python3-devel
 RUN pip install --no-cache-dir -r requirements.txt
 
 #RUN R -e "BiocManager::install('infercnv', ask=FALSE, update=TRUE)"
