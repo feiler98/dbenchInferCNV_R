@@ -130,7 +130,7 @@ def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict) -> None
                         ref_group_names,
                         kwargs):
             r = robjects.r
-            r.source("c_infercnvR.R")
+            r.source(Path(__file__).parent / "c_infercnvR.R")
             # reformat here to avoid datatype issues with benchmark summary
             kwargs_reformat = {x: convert_bool_to_robject(y) if isinstance(y, bool) else y for x, y in kwargs.items()}
             r.r_run_infercnv(path_file,

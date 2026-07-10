@@ -41,7 +41,7 @@ r_run_infercnv <- function(path_file,
                                         delim=",",
                                         gene_order_file=gene_order_file_path,
                                         ref_group_names=ref_group_names)
-    print("step 1 works!")
+
     infercnv_obj = infercnv::run(infercnv_obj,
                                  cutoff=cutoff, # cutoff=1 works well for Smart-seq2, and cutoff=0.1 works well for 10x Genomics
                                  min_cells_per_gene = min_cells_per_gene,
@@ -70,7 +70,7 @@ r_run_infercnv <- function(path_file,
                                  hspike_aggregate_normals = hspike_aggregate_normals,
                                  up_to_step = up_to_step,
                                  out_dir=out_dir)
-    print("step 2 works!")
+
     write.csv(infercnv_obj@expr.data, glue("{out_dir}/{sample_tag}__cnv.csv"))
     write.csv(infercnv_obj@gene_order, glue("{out_dir}/{sample_tag}__gene.csv"))
 }
