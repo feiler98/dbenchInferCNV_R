@@ -10,6 +10,8 @@ from utility import benchmark_method
 import itertools
 import random
 import string
+import os
+import stat
 # ----------------------------------------------------------------------------------------------------------------------
 
 def convert_bool_to_robject(bool_val: bool) -> robjects.vectors.BoolVector:
@@ -116,7 +118,9 @@ def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict) -> None
         data_save_path.mkdir(exist_ok=True)
         p_annot_file = data_save_path / f"{file_name}__annot.txt"
         pd.read_csv(dict_data["annotation_df"], index_col="cell_id")[dict_data["annotation_df_target_col"]].to_csv(p_annot_file, header=False)
-
+        os.chmod(data_save_path, stat.S_IRWXU)
+        os.chmod(data_save_path, stat.S_IRWXG)
+        os.chmod(data_save_path, stat.S_IRWXO)
         @benchmark_method(str(data_save_path))
         def run_rscript(path_file,
                         out_dir,
