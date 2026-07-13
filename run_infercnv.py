@@ -136,14 +136,16 @@ def run_r_infercnv(path_target: Path, path_out_data: Path, kwargs: dict) -> None
                              gene_order_file_path,
                              ref_group_names,
                              **kwargs_reformat)
-
-        run_rscript(path_file=str(dict_data["path_file"]),
-                    out_dir=str(data_save_path),
-                    sample_tag=file_name,
-                    annotations_file=str(p_annot_file),
-                    gene_order_file_path=str(Path(__file__).parent / "genome_data" / "hg38_gencode_v27.txt"),
-                    ref_group_names=dict_data["ref_group_names"],
-                    kwargs=kwargs_infercnvpy)
+        try:
+            run_rscript(path_file=str(dict_data["path_file"]),
+                        out_dir=str(data_save_path),
+                        sample_tag=file_name,
+                        annotations_file=str(p_annot_file),
+                        gene_order_file_path=str(Path(__file__).parent / "genome_data" / "hg38_gencode_v27.txt"),
+                        ref_group_names=dict_data["ref_group_names"],
+                        kwargs=kwargs_infercnvpy)
+        except:
+            pass
 
 
 if __name__ == "__main__":
